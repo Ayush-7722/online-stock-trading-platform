@@ -216,3 +216,49 @@ public class UserDAO {
 	   }
 
 }
+package com.user.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class UserDAO {
+
+    private String jdbcURL = "jdbc:mysql://localhost:3306/stock_trading_db";
+    private String jdbcUserName = "root";
+    private String jdbcPassword = "YourPassword";
+
+    private static final String AUTHENTICATE_USER_SQL = "SELECT * FROM users WHERE email = ? AND password_hash = ?";
+
+    protected Connection getConnection() {
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(jdbcURL, jdbcUserName, jdbcPassword);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return connection;
+    }
+
+    public boolean authenticateUser(String email, String passwordHash) {
+        boolean isAuthenticated = false;
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(AUTHENTICATE_USER_SQL)) {
+
+            // Set parameters for the query
+            preparedStatement.setString(1, email);
+            preparedStatement.setString(2, passwordHash);
+
+            // Execute the query
+            ResultSet resultSet = preparedStatement.executeQuery();
+            isAuthenticated = resultSet.next(); // If a record exists, authentication is successful
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return isAuthenticated;
+    }
+}
